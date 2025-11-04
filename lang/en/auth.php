@@ -13,6 +13,7 @@ return [
     |
     */
 
+    'unauthenticated' => 'Unauthenticated.',
     'success' => 'Login successful.',
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
@@ -24,5 +25,6 @@ return [
         'valid' => 'The provided OTP is valid.',
         'invalid' => 'The provided OTP is invalid or has expired.',
     ],
+    'too_many_login_attempts' => 'Too many login attempts. Please try again later.',
 
 ];

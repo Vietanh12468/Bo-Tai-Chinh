@@ -47,6 +47,18 @@ class ApiPermissionController extends Controller
      *         description="Sort order",
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of items per page",
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Permission list retrieved successfully",

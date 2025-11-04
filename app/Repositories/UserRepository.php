@@ -14,7 +14,7 @@ class UserRepository implements UserRepositoryInterface
         return User::query()->with('permissions');
     }
 
-    public function __filter(&$query, array $filters = []): \Illuminate\Database\Eloquent\Builder
+    private function __filter(&$query, array $filters = []): \Illuminate\Database\Eloquent\Builder
     {
         if (isset($filters['key_word'])) {
             $keyWord = mb_strtolower($filters['key_word']);
@@ -63,7 +63,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function create(array $data): array
     {
-        //generate or get original password to display after create user only
+        // generate or get original password to display after create user only
         $originalPassword = '';
         if (isset($data['password'])) {
             $originalPassword = $data['password'];
@@ -74,23 +74,24 @@ class UserRepository implements UserRepositoryInterface
 
         // save user data and token
         $user = $this->getBlankModel()->create($data);
-        $token = $this->generateAndSaveToken($user);
 
         // save and load user permissions
         if (isset($data['permissions'])) {
             $this->setPermissions($user, $data['permissions']);
-        }
-        $user->load('permissions');
+        };
+
+        $user->load(['permissions', 'image']);
 
         // make user to array to insert display user password when created only
         $user = $user->toArray();
         $user['password'] = $originalPassword;
 
-        return ['user' => $user, 'token' => $token];
+        return $user;
     }
 
-    public function update(User $user, array $data): User
+    public function update(int $id, array $data): array
     {
+        $user = $this->getBlankModel()->find($id);
         $user->update($data);
 
         if (isset($data['permissions'])) {
@@ -107,7 +108,8 @@ class UserRepository implements UserRepositoryInterface
             }
         }
 
-        $user->load('permissions');
+        $user->load(['permissions', 'image']);
+        $user = $user->toArray();
 
         return $user;
     }

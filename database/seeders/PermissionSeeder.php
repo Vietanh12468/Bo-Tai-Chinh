@@ -16,7 +16,7 @@ class PermissionSeeder extends Seeder
     {
         $permissions = [
             [
-                'id' => env('ROOT_PERMISSION_ID'),
+                'id' => config('app.root_permission_id', 42069),
                 'name' => 'root',
                 'slug' => 'root',
                 'routes' => ['*'],
@@ -26,14 +26,14 @@ class PermissionSeeder extends Seeder
                 'id' => 2,
                 'name' => 'user',
                 'slug' => 'user',
-                'routes' => ['user'],
+                'routes' => ['user.'],
                 'description' => 'Access to user management'
             ],
             [
                 'id' => 3,
                 'name' => 'permission',
                 'slug' => 'permission',
-                'routes' => ['permission'],
+                'routes' => ['permission.'],
                 'description' => 'Access to permission management'
             ],
         ];

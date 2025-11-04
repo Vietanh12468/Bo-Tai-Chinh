@@ -13,7 +13,7 @@ class PermissionRepository implements PermissionRepositoryInterface
         return Permission::query();
     }
 
-    public function __filter(&$query, array $filters = []): \Illuminate\Database\Eloquent\Builder
+    private function __filter(&$query, array $filters = []): \Illuminate\Database\Eloquent\Builder
     {
         if (isset($filters['key_word'])) {
             $keyWord = mb_strtolower($filters['key_word']);
@@ -49,7 +49,7 @@ class PermissionRepository implements PermissionRepositoryInterface
     {
         $permission = $this->getBlankModel()->create($data);
 
-        $rootPermissionId = (int) env('ROOT_PERMISSION_ID');
+        $rootPermissionId = config('app.root_permission_id', 42069);
         if (!empty($data['users'])) {
             // Extract user IDs from the provided data
             $userIds = array_map(fn($user) => $user['id'], $data['users']);

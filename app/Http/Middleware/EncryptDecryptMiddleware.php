@@ -7,7 +7,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Helpers\CryptoHelper;
-use Illuminate\Support\Facades\Crypt;
 
 class EncryptDecryptMiddleware
 {
@@ -91,36 +90,36 @@ class EncryptDecryptMiddleware
         //     }
         // }
 
+        // use for test
+        // $payload = $request->all();
+        // $encrypted = CryptoHelper::encryptData($payload);
+        // dd($encrypted);
+
         if (($request->isMethod('post') || $request->isMethod('delete')) && (!$request->has('payload') || empty($request->input('payload')))) {
             // Create an error response and skip calling the controller ($next).
             // We keep HTTP 200 so the outgoing-encryption step still runs; include the real status inside the body.
-            $response = $this->responseError(__('notification.api.missing_payload'));
+            $response = $this->sendError(__('notification.api.missing_payload'));
         } else {
-            if ($request->isJson()) {
-                // If it's a POST and there's no payload, return an error
-                if ($request->has('payload')) {
-                    $payload = $request->input('payload');
 
-                    // use for test
-                    // $encrypted = CryptoHelper::encryptData($payload);
-                    // dd($encrypted);
+            // If it's a POST and there's no payload, return an error
+            if ($request->has('payload')) {
+                $payload = $request->input('payload');
 
-                    try {
-                        $decrypted = CryptoHelper::decryptData($payload);
+                try {
+                    $decrypted = CryptoHelper::decryptData($payload);
 
-                        // Replace the request body with decrypted content
-                        // This updates $request->input() and $request->json()
-                        $request->replace($decrypted);
+                    // Replace the request body with decrypted content
+                    // This updates $request->input() and $request->json()
+                    $request->replace($decrypted);
 
-                        // Also update the raw content so getContent() returns the decrypted JSON
-                        $newJson = json_encode($decrypted, JSON_UNESCAPED_UNICODE);
-                        $request->server->set('CONTENT_LENGTH', strlen($newJson));
-                    } catch (\Exception $e) {
-                        return response()->json([
-                            'error' => 'Invalid or corrupt encrypted payload',
-                            'details' => $e->getMessage(),
-                        ], 400);
-                    }
+                    // Also update the raw content so getContent() returns the decrypted JSON
+                    $newJson = json_encode($decrypted, JSON_UNESCAPED_UNICODE);
+                    $request->server->set('CONTENT_LENGTH', strlen($newJson));
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'error' => 'Invalid or corrupt encrypted payload',
+                        'details' => $e->getMessage(),
+                    ], 400);
                 }
             }
 

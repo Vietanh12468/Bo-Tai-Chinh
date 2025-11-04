@@ -24,6 +24,6 @@ class UserRootSeeder extends Seeder
             'password' => Hash::make('123@123a'),
         ]);
 
-        $user->permissions()->sync([env('ROOT_PERMISSION_ID')]); // assign root permission
+        $user->permissions()->sync([config('app.root_permission_id')]); // assign root permission
     }
 }

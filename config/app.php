@@ -212,4 +212,8 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    'root_permission_id' => (int) env('ROOT_PERMISSION_ID', 42069),
+
+    'encryption_key' => env('ENCRYPTION_KEY', ''),
+    'encryption_algorithm' => env('ENCRYPTION_ALGORITHM', 'AES-256-CBC'),
 ];

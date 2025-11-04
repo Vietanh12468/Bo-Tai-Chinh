@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\ApiResponser;
+use App\Services\FileService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\IdsUserRequest;
 use App\Http\Requests\User\IdUserRequest;
 use App\Http\Requests\User\ListUserRequest;
-use App\Http\Requests\User\SetUserPermissionsRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Jobs\SendUserAccountEmailJob;
 use App\Repositories\UserRepository;
@@ -21,9 +21,12 @@ class ApiUserController extends Controller
 
     protected $userRepository;
 
-    public function __construct(UserRepository $userRepository)
+    protected $fileService;
+
+    public function __construct(UserRepository $userRepository, FileService $fileService)
     {
         $this->userRepository = $userRepository;
+        $this->fileService = $fileService;
     }
 
     /**
@@ -41,6 +44,7 @@ class ApiUserController extends Controller
      *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
      *             @OA\Property(property="password", type="string", format="password", example="password123"),
      *             @OA\Property(property="confirm_password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="image", type="string", format="binary", description="profile image file"),
      *             @OA\Property(property="permissions", type="array",
      *                 @OA\Items(
      *                     type="object",
@@ -74,6 +78,16 @@ class ApiUserController extends Controller
      *                     @OA\Property(property="start_at", type="string", format="date-time", example="2023-10-01T00:00:00Z"),
      *                     @OA\Property(property="expires_at", type="string", format="date-time", example="2024-10-01T00:00:00Z")
      *                 )
+     *             ),
+     *             OA\Property(
+     *                 property="image",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=5),
+     *                 @OA\Property(property="name", type="string", example="1696345600.webp"),
+     *                 @OA\Property(property="path", type="string", example="uploads/images/users/1696345600.webp"),
+     *                 @OA\Property(property="mime_type", type="string", example="image/webp"),
+     *                 @OA\Property(property="size", type="integer", example=204800),
+     *                 @OA\Property(property="path_asset", type="string", example="http://127.0.0.1:8000/uploads/images/users/1696345600.webp")
      *             )
      *         )
      *     )
@@ -87,12 +101,22 @@ class ApiUserController extends Controller
 
             $data = $request->only('name', 'slug', 'email', 'phone', 'password', 'confirm_password', 'permissions');
 
-            $result = $this->userRepository->create($data);
+            $file = $request->file('image');
+            if ($file) {
+                // get user id from account info to save image file
+                $userId = $request->get('accountInfo')['id'] ?? null;
+                $image = $this->fileService->uploadAndConvertToWebp($file, 'uploads/images/users', $userId);
+                if ($image) {
+                    $data['image_id'] = $image['id'];
+                }
+            }
+
+            $user = $this->userRepository->create($data);
 
             SendUserAccountEmailJob::dispatch($data['email'], $data['phone'], $data['password']);
 
             DB::commit();
-            return $this->responseSuccess(__('notification.api.create_success'), $result);
+            return $this->responseSuccess(__('notification.api.create_success'), $user);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage());
@@ -120,6 +144,7 @@ class ApiUserController extends Controller
      *             @OA\Property(property="name", type="string", example="Jane Doe", description="Full name of the user"),
      *             @OA\Property(property="email", type="string", format="email", example="jane@example.com", description="User email address"),
      *             @OA\Property(property="phone", type="string", example="+15551234567", description="Contact phone number"),
+     *             @OA\Property(property="image", type="string", format="binary", description="profile image file"),
      *             @OA\Property(property="permissions", type="array",
      *                 @OA\Items(
      *                     type="object",
@@ -153,6 +178,16 @@ class ApiUserController extends Controller
      *                     @OA\Property(property="start_at", type="string", format="date-time", example="2023-10-01T00:00:00Z"),
      *                     @OA\Property(property="expires_at", type="string", format="date-time", example="2024-10-01T00:00:00Z")
      *                 )
+     *             ),
+     *             OA\Property(
+     *                 property="image",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=5),
+     *                 @OA\Property(property="name", type="string", example="1696345600.webp"),
+     *                 @OA\Property(property="path", type="string", example="uploads/images/users/1696345600.webp"),
+     *                 @OA\Property(property="mime_type", type="string", example="image/webp"),
+     *                 @OA\Property(property="size", type="integer", example=204800),
+     *                 @OA\Property(property="path_asset", type="string", example="http://127.0.0.1:8000/uploads/images/users/1696345600.webp")
      *             )
      *         )
      *     )
@@ -166,9 +201,17 @@ class ApiUserController extends Controller
 
             $data = $request->only('name', 'slug', 'email', 'phone', 'permissions');
 
-            $user = $this->userRepository->getBlankModel()->find($id);
+            $file = $request->file('image');
+            if ($file) {
+                // get user id from account info to save image file
+                $userId = $request->get('accountInfo')['id'] ?? null;
+                $image = $this->fileService->uploadAndConvertToWebp($file, 'uploads/images/users/', $userId);
+                if ($image) {
+                    $data['image_id'] = $image['id'];
+                }
+            }
 
-            $this->userRepository->update($user, $data);
+            $user = $this->userRepository->update($id, $data);
 
             DB::commit();
             return $this->responseSuccess(__('notification.api.update_success'), $user);
@@ -212,6 +255,18 @@ class ApiUserController extends Controller
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Number of items per page",
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="List of users retrieved successfully",
@@ -243,7 +298,6 @@ class ApiUserController extends Controller
      *     )
      * )
      */
-
 
     public function list(ListUserRequest $request)
     {

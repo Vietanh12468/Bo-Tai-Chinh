@@ -265,9 +265,9 @@ class ApiAuthenticateController extends Controller
             if ($otp === $storedOtp) {
                 Redis::del('otp_reset_' . $email);
                 $token = $this->userRepository->generateAndSaveToken($user);
-                return $this->responseSuccess(__('auth.valid_otp'), ['token' => $token]);
+                return $this->responseSuccess(__('auth.otp.valid'), ['token' => $token]);
             } else {
-                return $this->responseError(__('auth.invalid_otp'));
+                return $this->responseError(__('auth.otp.invalid'));
             }
         } catch (\Exception $e) {
             Log::error($e->getMessage());

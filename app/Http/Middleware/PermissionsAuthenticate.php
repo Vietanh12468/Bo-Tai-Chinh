@@ -22,6 +22,10 @@ class PermissionsAuthenticate
         $routeName = $request->route()->getName();
 
         $accountInfo = $request->get('accountInfo');
+
+        if (!$accountInfo) {
+            return $this->sendError(__('auth.failed'), [], 500);
+        }
         $user = User::find($accountInfo['id']);
 
         if (!$user->checkPermission($routeName)) {

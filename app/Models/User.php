@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'image_id',
     ];
 
     /**
@@ -129,5 +130,10 @@ class User extends Authenticatable
         }
 
         return $password;
+    }
+
+    public function image()
+    {
+        return $this->hasOne(File::class, 'id', 'image_id');
     }
 }

@@ -47,6 +47,7 @@ class CreateUserRequest extends BaseRequest
             'permissions.*.id' => 'required|integer|exists:permissions,id',
             'permissions.*.start_at' => 'sometimes|date',
             'permissions.*.expires_at' => 'sometimes|date|after:permissions.*.start_at',
+            'image' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ];
     }
 

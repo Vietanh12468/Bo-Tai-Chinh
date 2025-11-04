@@ -42,6 +42,15 @@ trait ApiResponser
         ], $httpCode);
     }
 
+    public function listresponseError($message, $data = [], $statusCode = 1, $httpCode = 200): JsonResponse
+    {
+        return response()->json([
+            'error_code' => $statusCode,
+            'notification' => $message,
+            'data' => $data
+        ], $httpCode);
+    }
+
     public function customValidationErrorResponse(array $errors, string $notification = 'Lỗi kiểu dữ liệu.', int $errorCode = 2, int $statusCode = 422): JsonResponse
     {
         return response()->json([

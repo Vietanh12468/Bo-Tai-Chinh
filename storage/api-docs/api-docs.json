@@ -5,13 +5,13 @@
         "version": "0.1"
     },
     "paths": {
-        "/api/account-info/login": {
+        "/api/auth/login": {
             "post": {
                 "tags": [
-                    "Account-Info"
+                    "Auth"
                 ],
                 "summary": "Login a user",
-                "operationId": "74e513bd50b4b94b359e0b3da237d902",
+                "operationId": "806ea105e845b79ec2034d2f54595515",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -119,13 +119,13 @@
                 }
             }
         },
-        "/api/account-info/logout": {
+        "/api/auth/logout": {
             "post": {
                 "tags": [
-                    "Account-Info"
+                    "Auth"
                 ],
                 "summary": "Logout",
-                "operationId": "f36b3ce422df4655f328e014874c7193",
+                "operationId": "73725e585fd8e3d1f349df3616b47b66",
                 "responses": {
                     "200": {
                         "description": "Success"
@@ -133,13 +133,13 @@
                 }
             }
         },
-        "/api/account-info/reset-password": {
+        "/api/auth/change-password": {
             "post": {
                 "tags": [
-                    "Account-Info"
+                    "Auth"
                 ],
-                "summary": "Reset Password",
-                "operationId": "52a813f466936acec7e0d4c99337ca91",
+                "summary": "Change Password",
+                "operationId": "e2b7ad9596cb05d28501e1ef68ed478e",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -169,14 +169,120 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Password reset successfully",
+                        "description": "Password change successfully"
+                    }
+                }
+            }
+        },
+        "/api/auth/request-reset-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request a password reset OTP",
+                "description": "Send a reset OTP via email or phone. OTP expires after 5 minutes (300 seconds).",
+                "operationId": "0b446f6cda6b3f0893bb80d8da0671d9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "oneOf": [
+                                    {
+                                        "required": [
+                                            "email"
+                                        ],
+                                        "properties": {
+                                            "email": {
+                                                "type": "string",
+                                                "format": "email",
+                                                "example": "user@example.com"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    {
+                                        "required": [
+                                            "phone"
+                                        ],
+                                        "properties": {
+                                            "phone": {
+                                                "type": "string",
+                                                "example": "+84912345678"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP successfully sent to the user's email or phone",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "message": {
+                                        "ttl": {
+                                            "description": "Time in seconds until OTP expires",
+                                            "type": "integer",
+                                            "example": 300
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/verify-otp": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify the OTP for password reset",
+                "description": "Checks if the provided OTP is valid and returns a temporary token if correct.",
+                "operationId": "0f5087ff60d1105b364f4173533285c2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "otp": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP verified successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
                                             "type": "string",
-                                            "example": "Password reset successfully."
+                                            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI..."
                                         }
                                     },
                                     "type": "object"
@@ -1206,8 +1312,8 @@
     },
     "tags": [
         {
-            "name": "Account-Info",
-            "description": "Account-Info"
+            "name": "Auth",
+            "description": "Auth"
         },
         {
             "name": "Permission",

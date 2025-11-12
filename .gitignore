@@ -4,6 +4,7 @@
 /public/storage
 /public/uploads
 /storage/*.key
+/storage/google
 /vendor
 .env
 .env.backup

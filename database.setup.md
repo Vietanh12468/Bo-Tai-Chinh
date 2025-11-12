@@ -1,19 +1,24 @@
 /*
-Documentation: PostgreSQL user & database setup and Laravel migration guide
 
-Purpose
-- Create a dedicated PostgreSQL role and database for the application.
-- Grant the role the necessary privileges on the database, schema, existing objects, and on objects created in the future.
-- Run Laravel migrations and seeders to build and populate the schema.
+Config database using these field in env:
 
-High-level steps (order matters)
+    DB_CONNECTION=pgsql
+    DB_HOST=127.0.0.1
+    DB_PORT=5432
+    DB_DATABASE=botaichinh
+    DB_USERNAME=botaichinh
+    DB_PASSWORD=123@123a
+    DB_ADMIN=postgres
+
+PostgreSQL user & database setup and Laravel migration guide
+
 1. Connect to PostgreSQL as a superuser
 
     sudo psql -u postgres
 
 2. Create a role/user with LOGIN and a secure password.
 
-    CREATE USER botaichinh WITH PASSWORD '123@123a';
+    CREATE USER botaichinh WITH PASSWORD '123@123a';qq\qq
 
 3. Create the application database.
 
@@ -40,3 +45,19 @@ High-level steps (order matters)
 7. From the Laravel project root, run migrations and seeders:
     - php artisan migrate:refresh --seed
     - NOTE: migrate:refresh drops all tables and re-runs migrations; do NOT run this in production unless you intend to wipe the data.
+
+PostgreSQL backup and restore
+
+1. Setup rclone
+    sudo apt install rclone -y
+
+2. Config rclone
+    rclone config
+    n
+    drive
+
+3. Execute backup
+    php artisan db:backup
+
+4. Restore backup
+    php artisan db:restore file/to/absolute/path/restore.sql --force
